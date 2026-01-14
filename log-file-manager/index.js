@@ -35,3 +35,22 @@ async function checkSizeOnly() {
 
 // checkSizeOnly()
 
+async function rotateLog() {
+  try {
+    const stats = await fs.stat(LOG_FILE_PATH);
+    console.log('Current size: ' + stats.size);
+
+    if (stats.size > 100) {
+      console.log('File limit reached! Renaming file...');
+      const oldPath = LOG_FILE_PATH + '.old';
+      await fs.rename(LOG_FILE_PATH, oldPath);
+      console.log('Done! Old file is now: app.log.old');
+    } else {
+      console.log('Still have space. No need to rename.');
+    }
+  } catch (error) {
+    console.log('File not found yet, writing first entry...');
+  }
+}
+
+rotateLog();
