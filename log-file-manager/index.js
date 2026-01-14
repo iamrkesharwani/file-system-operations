@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const LOG_FILE_PATH = path.resolve(__dirname, 'app.log');
+const BACKUP_FOLDER = path.resolve(__dirname, 'archived_logs');
 const MAX_SIZE = 5 * 1024;
 
 const addLog = async (message) => {
@@ -20,11 +21,12 @@ const addLog = async (message) => {
     if (stats.size > MAX_SIZE) {
       console.log('Log rotation triggered...');
 
-      const logTimeStamp = Date.now();
-      const backupPath = `${LOG_FILE_PATH}.${logTimeStamp}.old`;
+      await fs.mkdir(BACKUP_FOLDER, { recursive: true });
+      const backupName = `app_${Date.now()}.log.old`;
+      const backupPath = path.join(BACKUP_FOLDER, backupName);
 
       await fs.rename(LOG_FILE_PATH, backupPath);
-      console.log('Backup created: ' + backupPath);
+      console.log(`Log archived to: archived_logs/${backupName}`);
     }
 
     // Append the new entry
