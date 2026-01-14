@@ -16,5 +16,22 @@ async function addLog(message) {
   }
 }
 
-addLog('Server started on port 3000');
-addLog('Database connection established');
+// addLog('Server started on port 3000');
+// addLog('Database connection established');
+
+async function checkSizeOnly() {
+  try {
+    const stats = await fs.stat(LOG_FILE_PATH);
+    console.log('File size is: ' + stats.size + ' bytes');
+    if (stats.size > 1000) {
+      console.log('Currently full');
+    } else {
+      console.log("We've got space!");
+    }
+  } catch (error) {
+    console.log("File doesn't exist");
+  }
+}
+
+// checkSizeOnly()
+
