@@ -6,30 +6,33 @@ const BACKUP_FOLDER = path.resolve(__dirname, 'archived_logs');
 const MAX_SIZE = 5 * 1024;
 
 const addLog = async (message) => {
+  // Timestamped log line
   const timeStamp = new Date().toISOString();
   const entry = `[${timeStamp}] ${message}\n`;
 
   try {
-    // Check current size
+    // Get current log file size
     let stats;
     try {
       stats = await fs.stat(LOG_FILE_PATH);
     } catch (e) {
       stats = { size: 0 };
     }
-    // Rotate if file is too big
+
+    // Rotate log if size exceeds limit
     if (stats.size > MAX_SIZE) {
       console.log('Log rotation triggered...');
 
+      // Move old log to backup folder
       await fs.mkdir(BACKUP_FOLDER, { recursive: true });
       const backupName = `app_${Date.now()}.log.old`;
       const backupPath = path.join(BACKUP_FOLDER, backupName);
-
       await fs.rename(LOG_FILE_PATH, backupPath);
+
       console.log(`Log archived to: archived_logs/${backupName}`);
     }
 
-    // Append the new entry
+    // Append new log entry
     await fs.appendFile(LOG_FILE_PATH, entry);
     console.log('Log written.');
   } catch (error) {
