@@ -20,6 +20,16 @@ async function startReader() {
   }
 
   const filePath = path.resolve(__dirname, fileName);
+
+  try {
+    await fs.access(filePath);
+    console.log('File received. Reading file...');
+  } catch (error) {
+    console.log('Error: File not received');
+    console.log('Details: ', error.code);
+    return;
+  }
+
   const ext = path.extname(filePath).toLowerCase();
   const contentType = mimeTypes[ext] || 'application/octet-stream';
 
