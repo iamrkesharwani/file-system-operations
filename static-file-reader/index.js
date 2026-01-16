@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 
+// Dictionary to map extensions to MIME types
 const mimeTypes = {
   '.html': 'text/html',
   '.css': 'text/css',
@@ -11,29 +12,51 @@ const mimeTypes = {
   '.json': 'application/json',
 };
 
-const fileName = process.argv[2];
+async function startFileReader() {
+  // 1. Get raw input from terminal
+  let urlPath = process.argv[2] || '/';
 
-async function startReader() {
-  if (!fileName) {
-    console.log('Error: Provide a file name to continue');
-    return;
+  // 2. Logic: Handle the root path
+  if (urlPath === '/') {
+    urlPath = '/index.html';
   }
 
+  // 3. Logic: Add .html extension if missing
+  if (!path.extname(urlPath)) {
+    urlPath += '.html';
+  }
+
+  // 4. Logic: Remove leading slash to get the local filename
+  const fileName = urlPath.startsWith('/') ? urlPath.slice(1) : urlPath;
   const filePath = path.resolve(__dirname, fileName);
 
-  try {
-    await fs.access(filePath);
-    console.log('File received. Reading file...');
-  } catch (error) {
-    console.log('Error: File not received');
-    console.log('Details: ', error.code);
-    return;
-  }
-
+  // 5. Identify the file type
   const ext = path.extname(filePath).toLowerCase();
   const contentType = mimeTypes[ext] || 'application/octet-stream';
 
-  console.log('MIME Type:', contentType);
+  try {
+    // 6. Safety Check: Does the file exist?
+    await fs.access(filePath);
+
+    // 7. Execution: Read the file content
+    const content = await fs.readFile(filePath, 'utf-8');
+
+    // 8. Output results
+    console.log('--- FILE INFO ---');
+    console.log(`Requested: ${urlPath}`);
+    console.log(`MIME Type: ${contentType}`);
+    console.log('--- CONTENT ---');
+    console.log(content);
+  } catch (error) {
+    // 9. Error Handling for ENOENT and EACCES
+    if (error.code === 'ENOENT') {
+      console.log(`❌ Error: File not found at ${fileName}`);
+    } else if (error.code === 'EACCES') {
+      console.log(`❌ Error: Permission denied for ${fileName}`);
+    } else {
+      console.log(`❌ Error: ${error.message}`);
+    }
+  }
 }
 
-startReader();
+startFileReader();
